@@ -1,0 +1,20 @@
+model:
+  channel_in_list: [1,8,16]
+  channel_out_list: [8, 16, 32]
+  linear_in_features: 100
+
+data:
+  path: ./data/fashion-mnist/fashion-mnist_train.csv
+  batch_size: 64
+  shuffle: true
+  num_workers: 0
+
+trainer:
+  accelerator: 'gpu'
+  callbacks: 
+    - class_path: src.callbacks.custom_callbacks.CustomCallback
+      init_args:
+        refresh_rate: 250
+
+
+
