@@ -1,9 +1,0 @@
-aiohttp==3.9.3
-docstring-parser==0.15
-jsonargparse==4.27.4
-lightning==2.1.4
-matplotlib==3.8.2
-pandas==2.2.0
-torchaudio==2.2.0
-torchvision==0.17.0
-typeshed-client==2.4.0
