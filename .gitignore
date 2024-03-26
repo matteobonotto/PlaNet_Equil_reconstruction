@@ -63,3 +63,21 @@ Thumbs.db
 # data/fashion-mnist/fashion-mnist_train.csv
 # data/fashion-mnist/fashion-mnist_test.csv
 data/.DS_Store
+
+
+!id_train.npy
+!id_test.npy
+
+
+
+
+
+
+
+
+
+
+
+
+
+
