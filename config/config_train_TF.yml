@@ -1,0 +1,15 @@
+model:
+  channel_in_list: [1,8,16]
+  channel_out_list: [8, 16, 32]
+  linear_in_features: 100
+
+data:
+  path: 
+    train: ./data/tf_Dataset_train_NeuralOpt_64x64_10000_samples.data
+    test: ./data/tf_Dataset_test_NeuralOpt_64x64_10000_samples.data
+  batch_size: 128
+  shuffle: true
+
+
+
+
