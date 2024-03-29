@@ -5,10 +5,17 @@ model:
 
 data:
   path: 
-    train: ./data/tf_Dataset_train_NeuralOpt_64x64_10000_samples.data
-    test: ./data/tf_Dataset_test_NeuralOpt_64x64_10000_samples.data
-  batch_size: 128
+    # train: ./data/tf_Dataset_train_NeuralOpt_64x64_10000_samples.data
+    train: ./data/tf_Dataset_train_NeuralOpt_64x64_70000_samples.data
+    test: ./data/tf_Dataset_test_NeuralOpt_64x64_16398_samples.data
+  batch_size: 64
   shuffle: true
+
+train:
+  epochs: 100
+  print_every_epoch: 1
+  is_physics_informed: False
+  ckpt_path: ./ckpt/
 
 
 

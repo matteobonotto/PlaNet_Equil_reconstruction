@@ -15,7 +15,9 @@ import argparse
 import yaml
 
 from src.models.planet import PlaNet_Equil_Neural_Opt
-from src.train.train import train
+from src.train.train import Trainer
+from src.eval.evaluate import Evaluator
+
 ###
 
 num_workers = os.cpu_count()-1
@@ -38,7 +40,7 @@ def get_configs(args):
 def load_data(config):
     train_dl = tf.data.Dataset.load(
         config['data']['path']['train']
-        ).batch(config['data']['batch_size'])
+        ).batch(config['data']['batch_size'],drop_remainder=True).shuffle(42)
     test_dl =  tf.data.Dataset.load(
         config['data']['path']['test']
         ).batch(config['data']['batch_size'])
@@ -62,30 +64,43 @@ def main():
     train_dl, test_dl = load_data(config)
     model = init_model(test_dl)
 
-    
-    model = train(model)
-
-    
-
-
-
-    # Initialize a trainer
     trainer = Trainer(
-        accelerator="cuda",
-        max_epochs=20,
-        callbacks=[TQDMProgressBar(refresh_rate=250)],
-        # enable_model_summary=False,
-        # barebones=True,
-        # enable_checkpointing=False
+        model=model,
+        config=config,
+        train_ds = train_dl
     )
+    trainer.run()
 
-    trainer.fit(
-        SimplePytorchLightningModel(), 
-        FashionMnistDataLoader(
-            path=path,
-            num_workers=num_workers
-            )
-        )
+    evaluator = Evaluator(
+        model=model,
+        config=config,
+        train_ds = test_dl
+    )
+    evaluator.run()
+
+
+
+    
+
+
+
+    # # Initialize a trainer
+    # trainer = Trainer(
+    #     accelerator="cuda",
+    #     max_epochs=20,
+    #     callbacks=[TQDMProgressBar(refresh_rate=250)],
+    #     # enable_model_summary=False,
+    #     # barebones=True,
+    #     # enable_checkpointing=False
+    # )
+
+    # trainer.fit(
+    #     SimplePytorchLightningModel(), 
+    #     FashionMnistDataLoader(
+    #         path=path,
+    #         num_workers=num_workers
+    #         )
+    #     )
     
 
 ###

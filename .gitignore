@@ -64,6 +64,8 @@ Thumbs.db
 # data/fashion-mnist/fashion-mnist_test.csv
 data/.DS_Store
 
+ckpt/*
+wandb/*
 
 !id_train.npy
 !id_test.npy
