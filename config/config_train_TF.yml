@@ -13,7 +13,7 @@ data:
   shuffle: true
 
 train:
-  epochs: 3
+  epochs: 1
   print_every_epoch: 1
   is_physics_informed: False
   ckpt_path: ./ckpt/
