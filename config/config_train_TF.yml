@@ -5,14 +5,15 @@ model:
 
 data:
   path: 
-    # train: ./data/tf_Dataset_train_NeuralOpt_64x64_10000_samples.data
-    train: ./data/tf_Dataset_train_NeuralOpt_64x64_70000_samples.data
+    train: ./data/tf_Dataset_train_NeuralOpt_64x64_10000_samples.data
+    # train: ./data/tf_Dataset_train_NeuralOpt_64x64_70000_samples.data
     test: ./data/tf_Dataset_test_NeuralOpt_64x64_16398_samples.data
+    grid: ./data/data_geo_Dataset_NeuralOpt_super_res_64x64.mat
   batch_size: 64
   shuffle: true
 
 train:
-  epochs: 100
+  epochs: 3
   print_every_epoch: 1
   is_physics_informed: False
   ckpt_path: ./ckpt/

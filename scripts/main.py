@@ -38,17 +38,17 @@ def get_configs(args):
     return config
 
 def load_data(config):
-    train_dl = tf.data.Dataset.load(
+    train_ds = tf.data.Dataset.load(
         config['data']['path']['train']
         ).batch(config['data']['batch_size'],drop_remainder=True).shuffle(42)
-    test_dl =  tf.data.Dataset.load(
+    test_ds =  tf.data.Dataset.load(
         config['data']['path']['test']
         ).batch(config['data']['batch_size'])
     
-    return train_dl, test_dl
+    return train_ds, test_ds
 
 def init_model(test_dl):
-    x_ds, y_ds, RHS_in_ds = iter(test_dl).next()
+    x_ds, y_ds, _ = iter(test_dl).next()
     n_input = x_ds.shape[-1]
     n_grid = y_ds.shape[-1]
     return PlaNet_Equil_Neural_Opt(n_input, n_grid)
@@ -61,20 +61,20 @@ def main():
 
     args = ParseArgs()
     config = get_configs(args)
-    train_dl, test_dl = load_data(config)
-    model = init_model(test_dl)
+    train_ds, test_ds = load_data(config)
+    model = init_model(test_ds)
 
     trainer = Trainer(
         model=model,
         config=config,
-        train_ds = train_dl
+        train_ds = train_ds
     )
     trainer.run()
 
     evaluator = Evaluator(
         model=model,
         config=config,
-        train_ds = test_dl
+        test_ds = test_ds
     )
     evaluator.run()
 
