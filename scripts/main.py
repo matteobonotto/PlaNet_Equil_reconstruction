@@ -43,7 +43,7 @@ def load_data(config):
         ).batch(config['data']['batch_size'],drop_remainder=True).shuffle(42)
     test_ds =  tf.data.Dataset.load(
         config['data']['path']['test']
-        ).batch(config['data']['batch_size'])
+        ).batch(config['data']['batch_size'],drop_remainder=True)
     
     return train_ds, test_ds
 
