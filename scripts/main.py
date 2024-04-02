@@ -40,7 +40,11 @@ def get_configs(args):
 def load_data(config):
     train_ds = tf.data.Dataset.load(
         config['data']['path']['train']
-        ).batch(config['data']['batch_size'],drop_remainder=True).shuffle(42)
+        ).batch(config['data']['batch_size'],drop_remainder=True).shuffle(
+            buffer_size = 70000,
+            seed=42,
+            reshuffle_each_iteration=True
+            )
     test_ds =  tf.data.Dataset.load(
         config['data']['path']['test']
         ).batch(config['data']['batch_size'],drop_remainder=True)
@@ -71,36 +75,14 @@ def main():
     )
     trainer.run()
 
-    evaluator = Evaluator(
-        model=model,
-        config=config,
-        test_ds = test_ds
-    )
-    evaluator.run()
-
-
-
-    
-
-
-
-    # # Initialize a trainer
-    # trainer = Trainer(
-    #     accelerator="cuda",
-    #     max_epochs=20,
-    #     callbacks=[TQDMProgressBar(refresh_rate=250)],
-    #     # enable_model_summary=False,
-    #     # barebones=True,
-    #     # enable_checkpointing=False
+    # evaluator = Evaluator(
+    #     model=model,
+    #     config=config,
+    #     test_ds = test_ds
     # )
+    # evaluator.run()
 
-    # trainer.fit(
-    #     SimplePytorchLightningModel(), 
-    #     FashionMnistDataLoader(
-    #         path=path,
-    #         num_workers=num_workers
-    #         )
-    #     )
+
     
 
 ###
