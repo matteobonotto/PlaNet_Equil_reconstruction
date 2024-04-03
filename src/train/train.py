@@ -26,7 +26,11 @@ class Trainer():
         if self.config['train']['logging']:
             if self.config['train']['logging']['wandb']:
                 self.logger = wandb
-                self.logger.init(project = self.config['train']['logging']['wandb']['project'])
+                self.logger.init(
+                    project = self.config['train']['logging']['wandb']['project'],
+                    # id='bnudeqd5', 
+                    # resume="must"
+                    )
 
         if self.config['train']['lr']['scheduler']:
             lr = ExponentialDecay(**self.config['train']['lr']['scheduler']['init_args'])

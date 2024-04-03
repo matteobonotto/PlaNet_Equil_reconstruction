@@ -5,15 +5,15 @@ model:
 
 data:
   path: 
-    # train: ./data/tf_Dataset_train_NeuralOpt_64x64_10000_samples.data
-    train: ./data/tf_Dataset_train_NeuralOpt_64x64_70000_samples.data
+    train: ./data/tf_Dataset_train_NeuralOpt_64x64_10000_samples.data
+    # train: ./data/tf_Dataset_train_NeuralOpt_64x64_70000_samples.data
     test: ./data/tf_Dataset_test_NeuralOpt_64x64_16398_samples.data
     grid: ./data/data_geo_Dataset_NeuralOpt_super_res_64x64.mat
   batch_size: 64
   shuffle: true
 
 train:
-  epochs: 400
+  epochs: 6400
   print_every_epoch: 1
   # optimizer: 'Adam'
   lr: 
@@ -28,10 +28,10 @@ train:
   ckpt_path: ./ckpt/
   logging:
     wandb: 
-      project: PlaNet_70ksample_physics_informed
+      project: PlaNet_10ksample_physics_informed
   trained_model:
     dir: './trained_models/'
-    name: 'PlaNet_70ksample_physics_informed/'
+    name: 'PlaNet_10ksample_physics_informed/'
 
 eval:
 
