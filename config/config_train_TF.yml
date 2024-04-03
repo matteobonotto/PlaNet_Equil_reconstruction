@@ -13,7 +13,7 @@ data:
   shuffle: true
 
 train:
-  epochs: 6400
+  epochs: 2800
   print_every_epoch: 1
   # optimizer: 'Adam'
   lr: 
@@ -23,15 +23,15 @@ train:
         decay_steps: 70000 #65000
         decay_rate: 0.75
   Gauss_filt_dim: 3
-  is_physics_informed: True
+  is_physics_informed: False #True
   from_ckpt: True
   ckpt_path: ./ckpt/
   logging:
     wandb: 
-      project: PlaNet_10ksample_physics_informed
+      project: PlaNet_10ksample_no_physics_informed
   trained_model:
     dir: './trained_models/'
-    name: 'PlaNet_10ksample_physics_informed/'
+    name: 'PlaNet_10ksample_no_physics_informed/'
 
 eval:
 
