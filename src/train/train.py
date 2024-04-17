@@ -28,8 +28,8 @@ class Trainer():
                 self.logger = wandb
                 self.logger.init(
                     project = self.config['train']['logging']['wandb']['project'],
-                    # id='bnudeqd5', 
-                    # resume="must"
+                    id='85ep6w7r', 
+                    resume="must"
                     )
 
         if self.config['train']['lr']['scheduler']:

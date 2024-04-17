@@ -68,7 +68,7 @@ def load_data(config):
     return train_ds, test_ds
 
 def init_model(test_dl):
-    x_ds, y_ds, _ = iter(test_dl).next()
+    x_ds, y_ds, _, _, _, _, _ = iter(test_dl).next()
     n_input = x_ds.shape[-1]
     n_grid = y_ds.shape[-1]
     return PlaNet_Equil_Neural_Opt(n_input, n_grid)

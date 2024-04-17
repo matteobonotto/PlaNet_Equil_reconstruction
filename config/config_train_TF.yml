@@ -5,33 +5,33 @@ model:
 
 data:
   path: 
-    train: ./data/tf_Dataset_train_NeuralOpt_64x64_10000_samples.data
-    # train: ./data/tf_Dataset_train_NeuralOpt_64x64_70000_samples.data
+    # train: ./data/tf_Dataset_train_NeuralOpt_64x64_10000_samples.data
+    train: ./data/tf_Dataset_train_NeuralOpt_64x64_70000_samples.data
     test: ./data/tf_Dataset_test_NeuralOpt_64x64_16398_samples.data
     grid: ./data/data_geo_Dataset_NeuralOpt_super_res_64x64.mat
   batch_size: 64
   shuffle: true
 
 train:
-  epochs: 2800
+  epochs: 400 #2800
   print_every_epoch: 1
   # optimizer: 'Adam'
   lr: 
-    scheduler: 
+    scheduler:
       init_args:
-        initial_learning_rate: 0.001
-        decay_steps: 70000 #65000
         decay_rate: 0.75
+        decay_steps: 70000
+        initial_learning_rate: 0.001
   Gauss_filt_dim: 3
   is_physics_informed: False #True
   from_ckpt: True
   ckpt_path: ./ckpt/
   logging:
     wandb: 
-      project: PlaNet_10ksample_no_physics_informed
+      project: PlaNet_70ksample_no_physics_informed
   trained_model:
     dir: './trained_models/'
-    name: 'PlaNet_10ksample_no_physics_informed/'
+    name: 'PlaNet_70ksample_no_physics_informed/'
 
 eval:
 
