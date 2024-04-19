@@ -28,7 +28,7 @@ train:
   ckpt_path: ./ckpt/
   logging:
     wandb: 
-      project: PlaNet_70ksample_no_physics_informed
+      project: debugging
   trained_model:
     dir: './trained_models/'
     name: 'PlaNet_70ksample_no_physics_informed/'

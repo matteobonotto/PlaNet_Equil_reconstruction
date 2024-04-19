@@ -55,21 +55,10 @@ class Evaluator():
         mse_GSope = []
         for test_ds_i in tqdm(self.test_ds,mininterval=1):
             x_ds, y_ds, RHS_in_ds, RR_ds, ZZ_ds, L_ker_ds, Df_ker_ds  = test_ds_i
-            # x_ds, y_ds, RHS_in_ds  = test_ds_i
 
             # MSE on poloidal flux
-            pred = self.model([x_ds,RR_ds,ZZ_ds])[...,0]
-            mse_flux.append(Mse2DImage(y_ds,pred))
-
-
-
-            # L_ker_ds, Df_ker_ds = compute_GSO_kernels(RR_ds, ZZ_ds)
-
-            # hr = RR[1,2] - RR[1,1]
-            # hz = ZZ[2,1] - ZZ[1,1] 
-            # alfa = -2*(hr**2 + hz**2)
-            # Laplace_kernel = np.array(([0, hr**2/alfa, 0], [hz**2/alfa, 1, hz**2/alfa], [0, hr**2/alfa, 0]))
-            # Df_dr_kernel = np.array(([0, 0, 0], [+1, 0, -1], [0, 0, 0]))/(2*hr*alfa)*(hr**2*hz**2)
+            pred = self.model([x_ds,RR_ds,ZZ_ds])
+            mse_flux.append(Mse2DImage(y_ds,pred[...,0]))
 
             # MSE on GS operator
             GS_ope_ds = fun_GSoperator_NN_conv_smooth_batch_adaptive(

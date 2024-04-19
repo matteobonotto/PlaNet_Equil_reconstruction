@@ -22,9 +22,7 @@ train:
   epochs: 400
   from_ckpt: true
   is_physics_informed: false
-  logging:
-    wandb:
-      project: PlaNet_70ksample_no_physics_informed
+  logging: null
   lr:
     scheduler:
       init_args:
