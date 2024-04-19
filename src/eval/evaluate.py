@@ -4,7 +4,6 @@ import tensorflow as tf
 from tqdm import tqdm
 import scipy.io as io
 
-from tensorflow.keras.metrics import MeanSquaredError
 from src.train.utils_train import gauss_kernel, fun_GSoperator_NN_conv_smooth_batch_adaptive
 
 DTYPE = 'float32'

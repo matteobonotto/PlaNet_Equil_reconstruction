@@ -36,10 +36,6 @@ def touch_dir(dir_path: str) -> None:
 
 
 
-# class CustomCli(LightningCLI):
-#     def add_arguments_to_parser(self, parser) -> None:
-#         pass
-
 
 
 def ParseArgs():

@@ -13,7 +13,6 @@ import pickle
 import yaml
 
 
-# Gauss_tensor = GaussKernel()
 
 
 
@@ -37,17 +36,6 @@ class Trainer():
         else:
             lr = self.config['train']['lr']
         self.optimizer = tf.keras.optimizers.legacy.Adam(learning_rate = lr)
-
-        # lr.decay_steps = len(train_ds)*self.config['data']['batch_size']
-        # lr.decay_rate = .75
-        # def decayed_learning_rate(step):
-        #     return lr.initial_learning_rate * lr.decay_rate ** (step / lr.decay_steps)
-        
-        # for i in range(400):
-        #     print(i, decayed_learning_rate(i*len(train_ds)))
-
-        # policy = mixed_precision.Policy('float32') # float32, mixed_float16
-        # mixed_precision.set_global_policy(policy)   
 
         self.InitCheckpointManager()
 
@@ -196,11 +184,6 @@ class Trainer():
 
                 loss_iterations.append(self.loss.numpy())
 
-                
-                # self.history['loss_Psi'].extend(self.loss_Psi.numpy())
-                # self.history['loss_GSO'].extend(self.loss_GSO.numpy())
-
-            # loss = np.mean(np.asarray(loss_epoch))
             self.history['loss_iter'].extend(loss_iterations)
             self.history['loss'].append(np.mean(np.asarray(loss_iterations)))
             epoch_time = time() - t_start
@@ -222,7 +205,6 @@ class Trainer():
             self.history['loss_GSO'].append(loss_GSO)
 
             # Print some statistics
-            # if epoch % config['train']['print_every_epoch'] == 0:
             print('epoch {:d}/{:d}, loss: {:2.2e}, loss Psi: {:2.2e}, loss GSO: {:2.2e}, {:d}s/epoch'.format(
                 epoch+1,
                 epochs,
@@ -230,17 +212,7 @@ class Trainer():
                 loss_Psi,
                 loss_GSO,
                 int(epoch_time)))
-            
-            # x_ds, y_ds, RHS_in_ds, RR_ds, ZZ_ds, L_ker_ds, Df_ker_ds = train_ds_i
-            # preds = self.model([x_ds, RR_ds, ZZ_ds])
-            # self.history['loss_Psi'].append(self.loss_fun_MSE(y_ds, preds).numpy())
-            # self.history['loss_GSO'].append(self.loss_fun_PDE_adaptive(
-            #         preds,
-            #         RHS_in_ds,
-            #         L_ker_ds,
-            #         Df_ker_ds,
-            #         RR_ds,
-            #         ZZ_ds).numpy())
+
             if self.config['train']['logging']:
                 for k in ['loss_Psi','loss_GSO']:
                     self.logger.log({k: self.history[k][-1]})
@@ -279,20 +251,6 @@ class Trainer():
             # Save configs
             with open(filename + 'configs.yaml','w') as f:
                 yaml.dump(self.config, f)   
-
-        # dictionary = {'history': self.history}
-        # history_name = ('/content/gdrive/MyDrive/history_PlaNet_NeuralOp_test_{:d}epochs.h5'.format(len(self.history)))
-        # model_name = ('/content/gdrive/MyDrive/model_PlaNet_NeuralOp_test_{:d}epochs.h5'.format(len(self.history)))
-        # scipy.io.savemat(history_name,dictionary)
-        # self.model.save(model_name)
-
-        # plt.figure()
-        # plt.plot(np.arange(0,len(history)),history, marker = '.')
-        # plt.yscale('log')
-
-        # model.save('/content/gdrive/MyDrive/tmp_model.h5')
-
-
 
 
 
