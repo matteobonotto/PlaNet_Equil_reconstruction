@@ -10,32 +10,28 @@ import matplotlib.pyplot as plt
 DTYPE = torch.float32
 
 
-class FashionMnistDataloader():
-    def __init__(self,path):
+class FashionMnistDataloader:
+    def __init__(self, path):
         self.path = path
 
     def prepare_data(self):
         data = pd.read_csv(self.path, low_memory=False).to_numpy()
-        X,y = data[:,1:], data[:,0]
+        X, y = data[:, 1:], data[:, 0]
         dims = X.shape
         dims = [int(x) for x in [dims[0], np.sqrt(dims[1]), np.sqrt(dims[1])]]
-        X = X.reshape(dims)/255
+        X = X.reshape(dims) / 255
         # plt.imshow(X[10000,:,:])
         # plt.show()
-        self.X = np.expand_dims(X,axis=1)
+        self.X = np.expand_dims(X, axis=1)
         self.y = y
 
-    
-    def dataloader(self,batch_size):
+    def dataloader(self, batch_size):
         self.prepare_data()
         return DataLoader(
-            TensorDataset(
-                torch.tensor(self.X,dtype=DTYPE),
-                torch.tensor(self.y)),
+            TensorDataset(torch.tensor(self.X, dtype=DTYPE), torch.tensor(self.y)),
             shuffle=True,
-            batch_size=batch_size)
-
-
+            batch_size=batch_size,
+        )
 
 
 # class FashionMnistDataloader():
@@ -59,7 +55,7 @@ class FashionMnistDataloader():
 #     def __getitem__(self, idx):
 #         img_path, class_name = self.data[idx]
 
-    
+
 #     def dataloader(self,batch_size):
 #         self.prepare_data()
 #         return DataLoader(
@@ -68,5 +64,3 @@ class FashionMnistDataloader():
 #                 torch.tensor(self.y)),
 #             shuffle=True,
 #             batch_size=batch_size)
-
-

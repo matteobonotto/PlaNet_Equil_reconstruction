@@ -5,3 +5,6 @@ matplotlib
 plotly
 datasets
 scipy
+black
+mypy
+torchinfo
