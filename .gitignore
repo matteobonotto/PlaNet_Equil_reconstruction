@@ -71,6 +71,7 @@ wandb/*
 !id_test.npy
 
 
+.venv/*
 
 
 
