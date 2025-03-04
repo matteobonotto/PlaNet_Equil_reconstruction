@@ -63,11 +63,12 @@ target-version = ['py310']
 [tool.mypy]
 ignore_missing_imports = true
 strict = true
-# exclude = [
-#     "atreides/scripts/",
-# ]
+exclude = [
+    "src_old/*",
+]
 
-# [tool.pytest.ini_options]
-# minversion = "7.1"
-# addopts = "--strict-markers"
-# testpaths = ["tests"]
+[tool.pytest.ini_options]
+markers = [
+    "slow",
+]
+
