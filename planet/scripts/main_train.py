@@ -59,10 +59,21 @@ def swish(x: Tensor, beta: float = 1.0) -> Tensor:
 
 
 class Conv2dNornAct(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: Tuple[int, int] = (3, 3),
+        padding: str = "same",
+    ):
         super().__init__()
-        self.conv2d = nn.Conv2d(in_channels=in_channels, out_channels=out_channels)
-        self.norm = nn.BatchNorm2d(num_features=1)
+        self.conv2d = nn.Conv2d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            padding=padding,
+        )
+        self.norm = nn.BatchNorm2d(num_features=out_channels)
         self.act = TrainableSwish()
 
     def forward(self, x: Tensor) -> Tensor:
@@ -81,21 +92,35 @@ class Conv2dNornAct(nn.Module):
 
 
 class TrunkNet(nn.Module):
-    def __init__(self, gridsize: Tuple[int, int]):
+    def __init__(self):
         super().__init__()
-        nr, nz = gridsize
         self.norm_r = nn.BatchNorm2d(num_features=1)
-        channels = []
+        self.norm_z = nn.BatchNorm2d(num_features=1)
+        self.trunk_r: List[Tuple[nn.Module, nn.Module]] = []
+        self.trunk_z: List[Tuple[nn.Module, nn.Module]] = []
+        channels: List[int] = [1, 8, 16, 32]
         for i in range(3):
-            filters = ((i + 1) * 8, (i + 2) * 8)
-            raise NotImplementedError
-        self.branch_r = [(Conv2dNornAct(), nn.MaxPool2d()) for _ in 3]
-        self.norm_z = nn.BatchNorm2d()
-        self.branch_z = [(Conv2dNornAct(), nn.MaxPool2d()) for _ in 3]
+            (in_channels, out_channels) = channels[i], channels[i + 1]
+            self.trunk_r.append(
+                (
+                    Conv2dNornAct(in_channels=in_channels, out_channels=out_channels),
+                    nn.MaxPool2d(kernel_size=2),
+                )
+            )
+            self.trunk_z.append(
+                (
+                    Conv2dNornAct(in_channels=in_channels, out_channels=out_channels),
+                    nn.MaxPool2d(kernel_size=2),
+                )
+            )
+        # [batch, 1, 32, 32]
+        # [batch, 8, 16, 16]
+        # [batch, 16, 8, 8]
+        # [batch, 32, 4, 4] -> 512
         self.flatten = nn.Flatten()
-        self.linear_1 = nn.Linear()
+        self.linear_1 = nn.Linear(in_features=1024, out_features=128)
         self.act = TrainableSwish()
-        self.linear_2 = nn.Linear()
+        self.linear_2 = nn.Linear(in_features=128, out_features=64)
 
     def forward(self, x_r: Tensor, x_z: Tensor) -> Tensor:
         """
@@ -122,19 +147,19 @@ class TrunkNet(nn.Module):
         """
 
         # branch for x_r
-        x_r = self.norm_r(x)
-        for layer, maxpool2d in self.branch_r:
+        x_r = self.norm_r(x_r)
+        for layer, maxpool2d in self.trunk_r:
             x_r = maxpool2d(layer(x_r))
 
         # branch for x_z
-        x_z = self.norm_z(x)
-        for layer, maxpool2d in self.branch_z:
+        x_z = self.norm_z(x_z)
+        for layer, maxpool2d in self.trunk_z:
             x_z = maxpool2d(layer(x_z))
 
         # concatenate branches and output
-        x = torch.cat((x_r, x_z), dim=-1)
+        x = torch.cat((x_r, x_z), dim=1)  # [batch, 32+32, 4, 4] -> 1024
         x = self.flatten(x)
-        x = self.act(self.linear(x))
+        x = self.act(self.linear_1(x))
         x = self.linear_2(x)
         return x
 
@@ -273,4 +298,13 @@ if __name__ == "__main__":
     inputs = [x_ds, RR_ds, ZZ_ds]
 
     branch_net = BranchNet(in_dim=x_ds.shape[-1])
-    branch_net(torch.tensor(x_ds.numpy()))
+    out_branch = branch_net(torch.tensor(x_ds.numpy()))
+
+    trunk_net = TrunkNet()
+    out_trunk = trunk_net(
+        torch.tensor(RR_ds.numpy()).unsqueeze(1),
+        torch.tensor(ZZ_ds.numpy()).unsqueeze(1),
+    )
+
+    decoder = Decoder()
+    out = decoder()
