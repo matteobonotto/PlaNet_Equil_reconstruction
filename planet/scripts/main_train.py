@@ -165,7 +165,7 @@ class TrunkNet(nn.Module):
 
 
 class BranchNet(nn.Module):
-    def __init__(self, in_dim: int):
+    def __init__(self, in_dim: int=302):
         super().__init__()
         self.linear_1 = nn.Linear(in_features=in_dim, out_features=256)
         self.norm_1 = nn.BatchNorm1d(num_features=256)
@@ -193,14 +193,27 @@ class BranchNet(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self):
+    def __init__(self, emb_dim:int = 2048):
         super().__init__()
-        self.linear = nn.Linear()
+        self.emb_dim = emb_dim
+        self.linear = nn.Linear(in_features=64, out_features=emb_dim)
         self.act = TrainableSwish()
-        self.decoder = [(nn.UpsamplingBilinear2d(), Conv2dNornAct()) for _ in range(3)]
-        self.conv = nn.Conv2d()
+        self.decoder: List[Tuple[nn.Module, nn.Module]] = []
+        # channels = [32, 16, 8, 4, 1]
+        channels = [128, 32, 16, 8]
+        for i in range(len(channels)-1):
+            in_channels, out_channels = channels[i], channels[i + 1]
+            self.decoder.append(
+                (
+                    nn.UpsamplingBilinear2d(scale_factor=2),
+                    Conv2dNornAct(in_channels=in_channels, out_channels=out_channels),
+                )
+            )
+        self.conv = nn.Conv2d(
+            in_channels=channels[-1], out_channels=1, kernel_size=(1, 1), padding="same"
+        )
 
-    def forward(self, x_branch: Tensor, x_trunk: Tensor) -> Tensor:
+    def forward(self, x_trunk: Tensor, x_branch: Tensor) -> Tensor:
         """
         # Multiply layer
         out_multiply = layers.Multiply(name="Multiply")([out_branch, out_trunk])
@@ -236,19 +249,19 @@ class Decoder(nn.Module):
 
         outputs = out_grid
         """
-        x_branch, x_trunk = x
-        x = x_branch * x_trunk
-
-        x = self.act(self.linear(x)).reshape()
+        # batch, n_hidden = x_branch.shape
+        x = x_branch * x_trunk # [batch, 64]
+        x = self.act(self.linear(x)) # [batch, 2048]
+        x = x.reshape((-1, 128, 4, 4))
 
         for upsample, layer in self.decoder:
             x = layer(upsample(x))
 
-        x = self.conv(x)
+        x = self.conv(x).squeeze()
         return x
 
 
-class PleNetCore(nn.Module):
+class PlaNetCore(nn.Module):
     def __init__(self):
         super().__init__()
         self.trunk = TrunkNet()
@@ -307,4 +320,11 @@ if __name__ == "__main__":
     )
 
     decoder = Decoder()
-    out = decoder()
+    out = decoder(out_trunk, out_branch)
+
+    planet = PlaNetCore()
+    summary(planet, input_data=(
+        torch.tensor(x_ds.numpy()), 
+        torch.tensor(RR_ds.numpy()).unsqueeze(1), 
+        torch.tensor(ZZ_ds.numpy()).unsqueeze(1)
+    ))
