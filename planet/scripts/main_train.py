@@ -165,7 +165,7 @@ class TrunkNet(nn.Module):
 
 
 class BranchNet(nn.Module):
-    def __init__(self, in_dim: int=302):
+    def __init__(self, in_dim: int = 302):
         super().__init__()
         self.linear_1 = nn.Linear(in_features=in_dim, out_features=256)
         self.norm_1 = nn.BatchNorm1d(num_features=256)
@@ -193,7 +193,7 @@ class BranchNet(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, emb_dim:int = 2048):
+    def __init__(self, emb_dim: int = 2048):
         super().__init__()
         self.emb_dim = emb_dim
         self.linear = nn.Linear(in_features=64, out_features=emb_dim)
@@ -201,7 +201,7 @@ class Decoder(nn.Module):
         self.decoder: List[Tuple[nn.Module, nn.Module]] = []
         # channels = [32, 16, 8, 4, 1]
         channels = [128, 32, 16, 8]
-        for i in range(len(channels)-1):
+        for i in range(len(channels) - 1):
             in_channels, out_channels = channels[i], channels[i + 1]
             self.decoder.append(
                 (
@@ -250,8 +250,8 @@ class Decoder(nn.Module):
         outputs = out_grid
         """
         # batch, n_hidden = x_branch.shape
-        x = x_branch * x_trunk # [batch, 64]
-        x = self.act(self.linear(x)) # [batch, 2048]
+        x = x_branch * x_trunk  # [batch, 64]
+        x = self.act(self.linear(x))  # [batch, 2048]
         x = x.reshape((-1, 128, 4, 4))
 
         for upsample, layer in self.decoder:
@@ -273,6 +273,120 @@ class PlaNetCore(nn.Module):
         out_branch = self.branch(x_meas)
         out_trunk = self.trunk(x_r, x_z)
         return self.decoder(out_branch, out_trunk)
+
+
+DTYPE = "float32"
+Gaussian_kernel = np.array(([1, 2, 1], [2, 4, 2], [1, 2, 1]), dtype=DTYPE) / (16)
+Gauss_tensor = tf.expand_dims(
+    tf.expand_dims(Gaussian_kernel[::-1, ::-1], axis=-1), axis=-1
+)
+
+
+def fun_GSoperator_NN_conv_smooth_batch_adaptive(
+    f, Laplace_kernel_ds, Df_dr_kernel_ds, RR_ds, ZZ_ds
+):
+
+    f = tf.transpose(f, [3, 1, 2, 0])
+    Lpsi = tf.nn.depthwise_conv2d(
+        f,
+        tf.transpose(tf.expand_dims(Laplace_kernel_ds, axis=-1), [1, 2, 0, 3]),
+        strides=[1, 1, 1, 1],
+        padding="VALID",
+    )
+    Lpsi = tf.transpose(
+        Lpsi, [3, 1, 2, 0]
+    )  # no need to be transposed becaused Laplacian filter is left/rigth symmetric
+    Dpsi_dr = tf.nn.depthwise_conv2d(
+        f,
+        tf.transpose(tf.expand_dims(Df_dr_kernel_ds, axis=-1), [1, 2, 0, 3]),
+        strides=[1, 1, 1, 1],
+        padding="VALID",
+    )
+    Dpsi_dr = (
+        -Dpsi_dr
+    )  # necessary because nn.depthwise_conv2d filters has to be transposed to perform real convolution (here [+h 0 -h] -> [-h 0 +h])
+    Dpsi_dr = tf.transpose(Dpsi_dr, [3, 1, 2, 0])
+    RR_in = tf.expand_dims(RR_ds[:, 1:-1, 1:-1], axis=-1)
+    Dpsi_dr = tf.math.divide(Dpsi_dr, RR_in)
+
+    GS_ope = Lpsi - Dpsi_dr
+
+    hr = RR_ds[:, 1, 2] - RR_ds[:, 1, 1]
+    hz = ZZ_ds[:, 2, 1] - ZZ_ds[:, 1, 1]
+    alfa = -2 * (hr**2 + hz**2)
+
+    hr = tf.expand_dims(tf.expand_dims(tf.expand_dims(hr, axis=-1), axis=-1), axis=-1)
+    hz = tf.expand_dims(tf.expand_dims(tf.expand_dims(hz, axis=-1), axis=-1), axis=-1)
+    alfa = tf.expand_dims(
+        tf.expand_dims(tf.expand_dims(alfa, axis=-1), axis=-1), axis=-1
+    )
+
+    GS_ope = GS_ope * alfa / (hr**2 * hz**2)
+    # GS_ope[0,:10,0]
+
+    GS_ope = tf.nn.conv2d(GS_ope, Gauss_tensor, strides=[1, 1, 1, 1], padding="SAME")
+    GS_ope = tf.squeeze(GS_ope, axis=-1)
+
+    # GS_ope_padded = RHS_ds.numpy()
+    # GS_ope_padded[:,1:-1,1:-1] = GS_ope
+    # GS_ope = tf.constant(GS_ope_padded)
+    return GS_ope
+
+
+def loss_fun_MSE(y_ds, predictions):
+    loss_MSE = tf.reduce_mean(tf.square(y_ds - tf.squeeze(predictions)))
+    return loss_MSE
+
+
+def loss_fun_PDE_adaptive(
+    predictions, RHS_in_ds, Laplace_kernel_ds, Df_dr_kernel_ds, RR_ds, ZZ_ds
+):
+    GS_ope_ref = RHS_in_ds
+    GS_ope_ds = fun_GSoperator_NN_conv_smooth_batch_adaptive(
+        predictions, Laplace_kernel_ds, Df_dr_kernel_ds, RR_ds, ZZ_ds
+    )
+    loss_PDE = tf.reduce_mean(tf.square(GS_ope_ref - GS_ope_ds))
+    return 0.1 * loss_PDE
+
+
+def _compute_grad_shafranov_operator(
+    pred: Tensor,
+    Laplace_kernel: Tensor,
+    Df_dr_kernel: Tensor,
+    RR_ds: Tensor,
+    ZZ_ds: Tensor,
+) -> Tensor:
+    pass
+
+
+class PDELoss(nn.Moduel):
+    def __init__(self):
+        super().__init__()
+
+    def forward(
+        pred: Tensor,
+        Laplace_kernel: Tensor,
+        Df_dr_kernel: Tensor,
+        RR_ds: Tensor,
+        ZZ_ds: Tensor,
+    ) -> Tensor:
+        return _compute_grad_shafranov_operator(
+            pred, Laplace_kernel, Df_dr_kernel, RR_ds, ZZ_ds
+        )
+
+
+class PlaNetLoss(nn.Module):
+    def __init__(self, scale_mse: float = 1.0, scale_pde: float = 1.0):
+        super().__init__()
+        self.loss_mse = nn.MSELoss()
+        self.loss_pde = PDELoss()
+        self.scale_mse = scale_mse
+        self.scale_pde = scale_pde
+
+    def forward(self, pred: Tensor, target: Tensor) -> Tensor:
+        return self.scale_mse * self.loss_mse(
+            pred=pred, target=target
+        ) + self.scale_pde * self.loss_pde(pred=pred, target=target)
 
 
 if __name__ == "__main__":
@@ -323,8 +437,13 @@ if __name__ == "__main__":
     out = decoder(out_trunk, out_branch)
 
     planet = PlaNetCore()
-    summary(planet, input_data=(
-        torch.tensor(x_ds.numpy()), 
-        torch.tensor(RR_ds.numpy()).unsqueeze(1), 
-        torch.tensor(ZZ_ds.numpy()).unsqueeze(1)
-    ))
+    summary(
+        planet,
+        input_data=(
+            torch.tensor(x_ds.numpy()),
+            torch.tensor(RR_ds.numpy()).unsqueeze(1),
+            torch.tensor(ZZ_ds.numpy()).unsqueeze(1),
+        ),
+    )
+
+    # loss functions
