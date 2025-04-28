@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": false
         }        ,
         {
             "name": "main",
@@ -18,7 +18,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/scripts/main.py",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "args" : ["-c", "./config/config_train_TF.yml"]
         }
     ]
