@@ -245,8 +245,8 @@ def _compute_grad_shafranov_operator(
     GS_ope = tf.squeeze(GS_ope, axis=-1)
     
     """
-
-    return GS_ope_smooth.squeeze()
+    # it appears that there is a - sign missing. Check out why!
+    return -GS_ope_smooth.squeeze()
 
 
 class TrainableSwish(nn.Module):
