@@ -45,11 +45,13 @@ def fun_contour_compare_sol(z_ref, z, RR, ZZ):
     return
 
 
-DTYPE = "float32"
-Gaussian_kernel = np.array(([1, 2, 1], [2, 4, 2], [1, 2, 1]), dtype=DTYPE) / (16)
-Gauss_tensor = tf.expand_dims(
-    tf.expand_dims(Gaussian_kernel[::-1, ::-1], axis=-1), axis=-1
-)
+DTYPE = torch.float32
+Gauss_kernel = np.array(([1, 2, 1], [2, 4, 2], [1, 2, 1])) / (16)
+# Gauss_tensor = tf.expand_dims(
+#     tf.expand_dims(Gaussian_kernel[::-1, ::-1], axis=-1), axis=-1
+# )
+
+# Gauss_tensor = torch.tensor(Gauss_tensor, dtype=DTYPE)
 
 
 def fun_GSoperator_NN_conv_smooth_batch_adaptive(
@@ -128,24 +130,68 @@ def _compute_grad_shafranov_operator(
     Df_dr_kernel: Tensor,
     RR: Tensor,
     ZZ: Tensor,
+    Gauss_kernel: Tensor,
 ) -> Tensor:
+    """
+    This implementation is taken from the paper https://doi.org/10.1016/j.fusengdes.2024.114193,
+    cited as [1] in the code
+    """
 
     batch_size = pred.shape[0]
 
-    xx = F.conv2d(pred[0, None, None, ...], weight=Laplace_kernel[0, None, None, ...])
-
+    # Compute the Laplace and the Dpsi_dr operators
     Lpsi = F.conv2d(
         pred[:, None, ...].permute(1, 0, 2, 3),
         weight=Laplace_kernel[:, None, ...],
         groups=batch_size,
     ).permute(1, 0, 2, 3)
 
-    Dpsi_dr = F.conv2d(
+    # The '-' is necessary because the depthwise conv filtershas to be transposed
+    # to perform real convolution (here [+h 0 -h] -> [-h 0 +h])
+    Dpsi_dr = -F.conv2d(
         pred[:, None, ...].permute(1, 0, 2, 3),
-        weight=Laplace_kernel[:, None, ...],
+        weight=Df_dr_kernel[:, None, ...],
         groups=batch_size,
     ).permute(1, 0, 2, 3)
+    Dpsi_dr = torch.div(Dpsi_dr, RR[:, None, 1:-1, 1:-1])
 
+    # the LHS in equation 12 of [1]
+    lhs = Lpsi - Dpsi_dr
+
+    # GS operator (RHS of requation 12 of [1])
+    hr = (RR[:, 1, 2] - RR[:, 1, 1])[:, None, None, None]
+    hz = (ZZ[:, 2, 1] - ZZ[:, 1, 1])[:, None, None, None]
+    alfa = -2 * (hr**2 + hz**2)
+    GS_ope = lhs * alfa / (hr**2 * hz**2)
+
+    # convolve with the gaussian kernel to smooth the solution a bit
+    GS_ope_smooth = -F.conv2d(
+        GS_ope,
+        weight=Gauss_kernel[None, None, ...],
+        groups=1,
+        padding="same",
+    )
+
+    """
+    ### this is the scipy implementation
+    hr = (RR[0,1,2] - RR[0,1,1]).cpu().detach().numpy()
+    hz = (ZZ[0,2,1] - ZZ[0,1,1]).cpu().detach().numpy()
+    kr = np.array(([0, 0, 0], [1, -2, 1], [0, 0, 0]))*hz**2
+    kz = np.transpose(np.array(([0, 0, 0], [1, -2, 1], [0, 0, 0])))*hr**2
+
+    L_kernel = (kr + kz)/(hr**2*hz**2)
+
+    Df_dr_kernel = np.array(([0, 0, 0], [+1, 0, -1], [0, 0, 0]))/(2*hr)
+
+    Lpsi = signal.convolve2d(psi_i, Laplace_kernel, mode='valid')
+    # Lpsi = Lpsi/(hr**2*hz**2)
+    Dpsi_dr = signal.convolve2d(psi_i, Df_dr_kernel, mode='valid')
+    # LHS_conv = Lpsi - Dpsi_dr/RR_in
+    GS_ope = Lpsi - Dpsi_dr/RR_in
+
+    ### this is the original tensorflow implementation
+    # TF tensors arrives with the shape [batch, H, W, channel]
+    pred_tf = pred[:, :, :, None]
     f = tf.expand_dims(tf.constant(pred.detach().cpu().numpy()), axis=-1)
     Laplace_kernel_ds = tf.expand_dims(
         tf.constant(Laplace_kernel.detach().cpu().numpy()), axis=-1
@@ -155,8 +201,9 @@ def _compute_grad_shafranov_operator(
     )
     RR_ds = tf.expand_dims(tf.constant(RR.detach().cpu().numpy()), axis=-1)
     ZZ_ds = tf.expand_dims(tf.constant(ZZ.detach().cpu().numpy()), axis=-1)
+    
 
-    f = tf.transpose(f, [3, 1, 2, 0])
+    # f = tf.transpose(f, [3, 1, 2, 0])
     Lpsi = tf.nn.depthwise_conv2d(
         f,
         tf.transpose(tf.expand_dims(Laplace_kernel_ds, axis=-1), [1, 2, 0, 3]),
@@ -196,8 +243,10 @@ def _compute_grad_shafranov_operator(
 
     GS_ope = tf.nn.conv2d(GS_ope, Gauss_tensor, strides=[1, 1, 1, 1], padding="SAME")
     GS_ope = tf.squeeze(GS_ope, axis=-1)
+    
+    """
 
-    pass
+    return GS_ope_smooth.squeeze()
 
 
 class TrainableSwish(nn.Module):
@@ -434,6 +483,9 @@ class PDELoss(nn.Module):
     def __init__(self):
         super().__init__()
         self.mse = nn.MSELoss()
+        self.register_buffer(
+            "Gauss_kernel", torch.tensor(Gauss_kernel, dtype=torch.float32)
+        )
 
     def forward(
         self,
@@ -445,7 +497,7 @@ class PDELoss(nn.Module):
         ZZ: Tensor,
     ) -> Tensor:
         rhs_computed = _compute_grad_shafranov_operator(
-            pred, Laplace_kernel, Df_dr_kernel, RR, ZZ
+            pred, Laplace_kernel, Df_dr_kernel, RR, ZZ, self.Gauss_kernel
         )
         return self.mse(rhs_computed, rhs)
 
