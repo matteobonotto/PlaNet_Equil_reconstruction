@@ -14,13 +14,17 @@ license = "MIT"  # Specify the license
 python = ">=3.10,<3.11"
 
 
-# [tool.poetry.dev-dependencies]
-# numpy ="*"
-# torch ="*"
-# pandas ="*"
-# matplotlib ="*"
-# plotly ="*"
-# datasets ="*"
+[tool.poetry.dev-dependencies]
+numpy = '*'
+torch = '*'
+pandas = '*'
+matplotlib = '*'
+plotly = '*'
+datasets = '*'
+scipy = '*'
+black
+mypy
+torchinfo
 
 # torch = "^23.1"
 # torchvision = "^1.1"
