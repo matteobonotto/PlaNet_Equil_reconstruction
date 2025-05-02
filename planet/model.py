@@ -52,7 +52,6 @@ Gauss_kernel = np.array(([1, 2, 1], [2, 4, 2], [1, 2, 1])) / (16)
 # Gauss_tensor = torch.tensor(Gauss_tensor, dtype=DTYPE)
 
 
-
 class TrainableSwish(nn.Module):
     def __init__(self, beta: float = 1.0):
         super().__init__()
@@ -281,4 +280,3 @@ class PlaNetCore(nn.Module):
         out_branch = self.branch(x_meas)
         out_trunk = self.trunk(x_r, x_z)
         return self.decoder(out_branch, out_trunk)
-

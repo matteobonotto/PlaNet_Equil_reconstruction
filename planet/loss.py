@@ -1,4 +1,3 @@
-
 def fun_GSoperator_NN_conv_smooth_batch_adaptive(
     f,
     Laplace_kernel_ds,
@@ -196,8 +195,6 @@ def _compute_grad_shafranov_operator(
     """
     # it appears that there is a - sign missing. Check out why!
     return -GS_ope_smooth.squeeze()
-
-
 
 
 class PDELoss(nn.Module):
