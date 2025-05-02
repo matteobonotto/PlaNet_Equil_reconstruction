@@ -38,4 +38,4 @@ def test_gs_operator():
     )
 
 
-test_gs_operator()
+# test_gs_operator()

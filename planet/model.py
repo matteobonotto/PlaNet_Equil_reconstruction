@@ -53,7 +53,11 @@ Gauss_kernel = np.array(([1, 2, 1], [2, 4, 2], [1, 2, 1])) / (16)
 
 
 def fun_GSoperator_NN_conv_smooth_batch_adaptive(
-    f, Laplace_kernel_ds, Df_dr_kernel_ds, RR_ds, ZZ_ds
+    f,
+    Laplace_kernel_ds,
+    Df_dr_kernel_ds,
+    RR_ds,
+    ZZ_ds,
 ):
 
     f = tf.transpose(f, [3, 1, 2, 0])

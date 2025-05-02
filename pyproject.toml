@@ -1,64 +1,42 @@
 [tool.poetry]
 name = "planet"
 version = "0.1.0"
-description = "PlaNet: reconstruction of plasma equilibrium and separatrix using convolutional physics-informed neural operator"
+description = "PlaNet: reconstruction of plasma equilibrium and separatrix using convolutional physics-informed neural operator. See https://doi.org/10.1016/j.fusengdes.2024.114193"
 readme = "README.md"
 authors = ["Matteo Bonotto <m.bonotto@outlook.com>"]
 license = "MIT"  # Specify the license
 
-# [build-system]
-# requires = ["poetry-core"]
-# build-backend = "poetry.core.masonry.api"
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
 
-
 [tool.poetry.dev-dependencies]
-numpy = '*'
-torch = '*'
-pandas = '*'
-matplotlib = '*'
-plotly = '*'
-datasets = '*'
-scipy = '*'
-black
-mypy
-torchinfo
+black = "^25.1.0"
+datasets = "^3.3.2"
+ipykernel = "^6.29.5"
+lightning = "^2.5.1.post0"
+matplotlib = "^3.10.1"
+mypy = "^1.15.0"
+plotly = "^6.0.0"
+poetry = "^2.1.1"
+scikit-learn = "^1.6.1"
+scipy="^1.15.2"
+tqdm = "^4.67.1"
+torchinfo = "^1.8.0"
+pandas = "^2.2.3"
+numpy ="^2.0.2"
+torch = "^2.7.0"
+h5py = "^3.13.0"
 
-# torch = "^23.1"
-# torchvision = "^1.1"
-# matplotlib = "^3.9.1"
-# alpaca-py = "^0.28.1"
-# babel = "^2.15.0"
-# eikon = "^1.1.18"
-# epub2pdf = "^0.1.0"
-# flask-caching = "^2.3.0"
-# h5py = "^3.11.0"
-# humanize = "^4.10.0"
-# ipykernel = "^6.29.5"
-# markdown = "^3.6"
-# pathos = "^0.3.2"
-# pip-chill = "^1.0.3"
-# pyyaml = "^6.0.1"
-# quandl = "^3.7.0"
-# tsfresh = "^0.20.3"
-# tstables = "^0.0.15"
-# v20 = "^3.0.25.0"
-# xlrd = "^2.0.1"
 
 [tool.poetry.group.dev.dependencies]
 setuptools = "^69.5.1"  # Ensures proper package discovery
 
 [tool.poetry.build]
 generate-setup-file = true
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-# [tool.poetry.packages]
-# include = ["atreides"]
 
 [tool.black]
 line-length = 88

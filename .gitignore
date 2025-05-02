@@ -72,7 +72,9 @@ wandb/*
 
 
 .venv/*
+venv/*
 
+!planet/test/data/*
 
 
 
