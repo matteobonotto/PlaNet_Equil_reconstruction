@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import Tuple, List
 
-import tensorflow as tf
+# import tensorflow as tf
 import torch
 from torch import Tensor, nn
 import torch.nn.functional as F
@@ -16,12 +16,12 @@ import matplotlib.lines as mlines
 from planet.model import TrunkNet, BranchNet, Decoder, PlaNetCore
 
 if __name__ == "__main__":
-    train_ds_1 = tf.data.Dataset.load(
-        "./data/tf_Dataset_NeuralOpt_all_domain_only_32x32.data"
-    )
-    train_ds_2 = tf.data.Dataset.load(
-        "./data/tf_Dataset_NeuralOpt_super_res_only_32x32.data"
-    )
+    # train_ds_1 = tf.data.Dataset.load(
+    #     "./data/tf_Dataset_NeuralOpt_all_domain_only_32x32.data"
+    # )
+    # train_ds_2 = tf.data.Dataset.load(
+    #     "./data/tf_Dataset_NeuralOpt_super_res_only_32x32.data"
+    # )
     # train_ds_1 = tf.data.Dataset.load('./gdrive/MyDrive/Colab_Notebooks/tf_Datasets/tf_Dataset_NeuralOpt_all_domain_only_64x64.data')
     # train_ds_2 = tf.data.Dataset.load('./gdrive/MyDrive/Colab_Notebooks/tf_Datasets/tf_Dataset_NeuralOpt_super_res_only_64x64.data')
     dict_geo = scipy.io.loadmat("./data/data_geo_Dataset_NeuralOpt_super_res_32x32.mat")

@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import Tuple, List
 
-import tensorflow as tf
+# import tensorflow as tf
 import torch
 from torch import Tensor, nn
 import torch.nn.functional as F
@@ -99,8 +99,10 @@ class Conv2dNornAct(nn.Module):
 
 
 class TrunkNet(nn.Module):
-    def __init__(self):
+    def __init__(self, hidden_dim: int = 128, nr: int = 32, nz: int = 32):
         super().__init__()
+        assert nr % 2 == 0, f"nr must be a power of 2, got {nr}"
+        assert nz % 2 == 0, f"nz must be a power of 2, got {nz}"
         self.norm_r = nn.BatchNorm2d(num_features=1)
         self.norm_z = nn.BatchNorm2d(num_features=1)
         self.trunk_r = nn.ModuleList()
@@ -125,9 +127,11 @@ class TrunkNet(nn.Module):
         # [batch, 16, 8, 8]
         # [batch, 32, 4, 4] -> 512
         self.flatten = nn.Flatten()
-        self.linear_1 = nn.Linear(in_features=1024, out_features=128)
+        self.linear_1 = nn.Linear(
+            in_features=int(2 * channels[-1] * nr / 2**3 * nz / 2**3), out_features=128
+        )
         self.act = TrainableSwish()
-        self.linear_2 = nn.Linear(in_features=128, out_features=64)
+        self.linear_2 = nn.Linear(in_features=128, out_features=hidden_dim)
 
     def forward(self, x_r: Tensor, x_z: Tensor) -> Tensor:
         """
@@ -172,7 +176,7 @@ class TrunkNet(nn.Module):
 
 
 class BranchNet(nn.Module):
-    def __init__(self, in_dim: int = 302):
+    def __init__(self, in_dim: int = 302, hidden_dim: int = 128):
         super().__init__()
         self.linear_1 = nn.Linear(in_features=in_dim, out_features=256)
         self.norm_1 = nn.BatchNorm1d(num_features=256)
@@ -180,7 +184,7 @@ class BranchNet(nn.Module):
         self.linear_2 = nn.Linear(in_features=256, out_features=128)
         self.norm_2 = nn.BatchNorm1d(num_features=128)
         self.act_2 = TrainableSwish(beta=1.0)
-        self.linear_3 = nn.Linear(in_features=128, out_features=64)
+        self.linear_3 = nn.Linear(in_features=128, out_features=hidden_dim)
 
     def forward(self, x: Tensor) -> Tensor:
         """
@@ -200,10 +204,16 @@ class BranchNet(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, emb_dim: int = 2048):
+    def __init__(self, hidden_dim: int = 128, nr: int = 32, nz: int = 32):
         super().__init__()
-        self.emb_dim = emb_dim
-        self.linear = nn.Linear(in_features=64, out_features=emb_dim)
+        assert nr % 2 == 0, f"nr must be a power of 2, got {nr}"
+        assert nz % 2 == 0, f"nz must be a power of 2, got {nz}"
+        self.nr = nr
+        self.nz = nz
+        self.linear = nn.Linear(
+            in_features=hidden_dim,
+            out_features=128 * int(self.nr / 2**3) * int(self.nz / 2**3),
+        )
         self.act = TrainableSwish()
         self.decoder = nn.ModuleList()
         # channels = [32, 16, 8, 4, 1]
@@ -257,9 +267,11 @@ class Decoder(nn.Module):
         outputs = out_grid
         """
         # batch, n_hidden = x_branch.shape
+        batch = x_branch.shape[0]
         x = x_branch * x_trunk  # [batch, 64]
         x = self.act(self.linear(x))  # [batch, 2048]
-        x = x.reshape((-1, 128, 4, 4))
+        # x = x.reshape((batch, 128, 4, 4))
+        x = x.reshape((batch, 128, int(self.nr / 2**3), int(self.nz / 2**3)))
 
         for layer in self.decoder:
             x = layer(x)
@@ -269,11 +281,17 @@ class Decoder(nn.Module):
 
 
 class PlaNetCore(nn.Module):
-    def __init__(self):
+    def __init__(
+        self,
+        hidden_dim: int = 128,
+        nr: int = 64,
+        nz: int = 64,
+        branch_in_dim: int = 302,
+    ):
         super().__init__()
-        self.trunk = TrunkNet()
-        self.branch = BranchNet()
-        self.decoder = Decoder()
+        self.trunk = TrunkNet(hidden_dim=hidden_dim, nr=nr, nz=nz)
+        self.branch = BranchNet(hidden_dim=hidden_dim, in_dim=branch_in_dim)
+        self.decoder = Decoder(hidden_dim=hidden_dim, nr=nr, nz=nz)
 
     def forward(self, x: Tuple[Tensor, Tensor, Tensor]) -> Tensor:
         x_meas, x_r, x_z = x
