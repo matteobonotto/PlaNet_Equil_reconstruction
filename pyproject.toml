@@ -30,6 +30,7 @@ pandas = "^2.2.3"
 numpy ="^2.0.2"
 torch = "^2.7.0"
 h5py = "^3.13.0"
+pytest = "^8.3.5"
 
 
 [tool.poetry.group.dev.dependencies]

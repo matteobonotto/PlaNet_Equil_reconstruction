@@ -13,10 +13,10 @@ build:
 # Utilities
 
 test:
-	pytest -vs tests/ -m "not slow"
+	pytest -vs planet/tests/ -m "not slow"
 
 test-full:
-	pytest -vs tests/
+	pytest -vs tplanet/ests/
 
 style:
 	poetry run black planet
