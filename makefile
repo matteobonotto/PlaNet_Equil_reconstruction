@@ -16,7 +16,7 @@ test:
 	pytest -vs planet/tests/ -m "not slow"
 
 test-full:
-	pytest -vs tplanet/ests/
+	pytest -vs planet/ests/
 
 style:
 	poetry run black planet

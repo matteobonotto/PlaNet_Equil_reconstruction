@@ -6,8 +6,13 @@ import torch
 import lightning as L
 from torch.utils.data import DataLoader
 
-from .model import PlaNetCore, PlaNetLoss
+from .model import PlaNetCore
+from .loss import PlaNetLoss
 from .data import PlaNetDataset, get_device
+
+
+def collate_fun(batch):
+    measures, flux, rhs, RR, ZZ, L_ker, Df_ker
 
 
 class DataModule(L.LightningDataModule):
@@ -16,7 +21,12 @@ class DataModule(L.LightningDataModule):
         self.train_dataset = PlaNetDataset(path=dataset_path)
 
     def train_dataloader(self):
-        return DataLoader(dataset=self.train_dataset, batch_size=64, shuffle=True)
+        return DataLoader(
+            dataset=self.train_dataset,
+            batch_size=64,
+            shuffle=True,
+            collate_fn=collate_fun,
+        )
 
     def setup(self, stage=None):
         pass

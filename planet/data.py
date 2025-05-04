@@ -146,10 +146,10 @@ class PlaNetDataset:
         return self.scaler
 
     def __len__(self) -> int:
-        return self.measures.shape[0]
+        return self.inputs.shape[0]
 
-    def __getitem__(self, idx: int):
-        measures = self.measures[idx, ...]
+    def __getitem__(self, idx: int) -> Tuple[Tensor]:
+        inputs = self.inputs[idx, ...]
         flux = self.flux[idx, ...]
         rhs = self.rhs[idx, ...]
         RR = self.RR
@@ -161,8 +161,8 @@ class PlaNetDataset:
             flux = interp_fun(f=flux, RR=self.RR, ZZ=self.ZZ, rr=rr, zz=zz)
             rhs = interp_fun(
                 f=rhs,
-                RR=self.RR[1:-1, 1:-1],
-                ZZ=self.ZZ[1:-1, 1:-1],
+                RR=self.RR,
+                ZZ=self.ZZ,
                 rr=rr[1:-1, 1:-1],
                 zz=zz[1:-1, 1:-1],
             )
@@ -173,7 +173,7 @@ class PlaNetDataset:
 
         return _to_tensor(
             device=self.device,
-            inputs=(measures, flux, rhs, RR, ZZ, L_ker, Df_ker),
+            inputs=(inputs, flux, rhs, RR, ZZ, L_ker, Df_ker),
         )
 
 

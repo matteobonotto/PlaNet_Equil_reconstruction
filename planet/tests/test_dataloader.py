@@ -1,9 +1,19 @@
+from torch import Tensor
+
 from planet.data import PlaNetDataset
 
 
 def test_planet_dataset():
-    ds = PlaNetDataset(path="planet/test/data/iter_like_data_sample.h5")
-    pass
+    ds = PlaNetDataset(path="planet/tests/data/iter_like_data_sample.h5")
 
+    assert hasattr(ds, "RR")
+    assert hasattr(ds, "ZZ")
+    assert hasattr(ds, "flux")
+    assert hasattr(ds, "rhs")
+    assert hasattr(ds, "inputs")
 
-test_planet_dataset()
+    data = ds[0]
+    assert isinstance(data, tuple)
+
+    for x in data:
+        assert isinstance(x, Tensor)

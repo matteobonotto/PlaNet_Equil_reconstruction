@@ -44,7 +44,7 @@ def fun_contour_compare_sol(z_ref, z, RR, ZZ):
 
 
 DTYPE = torch.float32
-Gauss_kernel = np.array(([1, 2, 1], [2, 4, 2], [1, 2, 1])) / (16)
+
 # Gauss_tensor = tf.expand_dims(
 #     tf.expand_dims(Gaussian_kernel[::-1, ::-1], axis=-1), axis=-1
 # )

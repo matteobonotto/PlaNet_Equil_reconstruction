@@ -5,16 +5,16 @@ sys.path.append(os.getcwd())
 
 import torch
 
-from planet.scripts.main_model import _compute_grad_shafranov_operator, Gauss_kernel
-from planet.scripts.main_data import PlaNetDataset
-from planet.scripts.main_train import DataModule
+from planet.loss import _compute_grad_shafranov_operator, Gauss_kernel
+from planet.data import PlaNetDataset
+from planet.train import DataModule
 from planet.plot import fun_contourf_sol
 
 
 def test_gs_operator():
     ###
-    ds = PlaNetDataset(path="planet_data_sample.h5")
-    datamodule = DataModule(dataset_path="planet_data_sample.h5")
+    # ds = PlaNetDataset(path="planet/tests/data/iter_like_data_sample.h5")
+    datamodule = DataModule(dataset_path="planet/tests/data/iter_like_data_sample.h5")
     dataloader = datamodule.train_dataloader()
     meas, flux, RHS_in, RR, ZZ, Laplace_kernel, Df_dr_kernel = next(iter(dataloader))
 
@@ -38,4 +38,4 @@ def test_gs_operator():
     )
 
 
-# test_gs_operator()
+test_gs_operator()

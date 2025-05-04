@@ -32,7 +32,13 @@ if __name__ == "__main__":
         "p_profile": p_profile,
     }
     data = {k: v.astype("float32") for k, v in data.items()}
-    data_sample = {k: v.astype("float32")[:8, ...] for k, v in data.items()}
+    data_sample = {
+        k: v.astype("float32")[:8, ...]
+        for k, v in data.items()
+        if "RR" not in k and "ZZ" not in k
+    }
+    data_sample["RR_grid"] = data["RR_grid"]
+    data_sample["ZZ_grid"] = data["ZZ_grid"]
 
     import pyarrow as pa
 

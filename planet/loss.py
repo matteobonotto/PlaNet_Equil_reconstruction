@@ -1,3 +1,11 @@
+import torch
+from torch import Tensor, nn
+import numpy as np
+
+
+Gauss_kernel = np.array(([1, 2, 1], [2, 4, 2], [1, 2, 1])) / (16)
+
+
 def fun_GSoperator_NN_conv_smooth_batch_adaptive(
     f,
     Laplace_kernel_ds,
