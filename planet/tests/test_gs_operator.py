@@ -11,8 +11,6 @@ from planet.loss import _compute_grad_shafranov_operator, Gauss_kernel
 from planet.train import DataModule
 
 
-
-
 def test_gs_operator():
     ###
     datamodule = DataModule(dataset_path="planet/tests/data/iter_like_data_sample.h5")
@@ -30,9 +28,13 @@ def test_gs_operator():
 
     norm_difference = torch.norm(diff.view(diff.shape[0], -1), dim=1)  # shape [batch]
     norm_rhs = torch.norm(RHS_in.view(RHS_in.shape[0], -1), dim=1)  # shape [batch]
-    norm = 100*norm_difference/norm_rhs
+    norm = 100 * norm_difference / norm_rhs
 
-    assert (norm < 5).all(), "error with _compute_grad_shafranov_operator in at least one element is > 5%"
+    assert (
+        norm < 5
+    ).all(), (
+        "error with _compute_grad_shafranov_operator in at least one element is > 5%"
+    )
 
 
 # def test_gs_operator_():

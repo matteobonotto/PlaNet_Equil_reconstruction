@@ -92,7 +92,9 @@ def compute_Grda_Shafranov_kernels(RR: ndarray, ZZ: ndarray) -> Tuple[ndarray, n
     return Laplace_kernel, Df_dr_kernel
 
 
-def _to_tensor(device: torch.device, inputs: Tuple[Any], dtype: torch.dtype) -> Tuple[Tensor]:
+def _to_tensor(
+    device: torch.device, inputs: Tuple[Any], dtype: torch.dtype
+) -> Tuple[Tensor]:
     inputs_t: List[Tensor] = []
     for x in inputs:
         inputs_t.append(
@@ -115,11 +117,20 @@ def get_device() -> torch.device:
 
 
 class PlaNetDataset:
-    def __init__(self, path: str, dtype: torch.dtype = torch.float32, is_physics_informed: bool = True):
+    def __init__(
+        self,
+        path: str,
+        dtype: torch.dtype = torch.float32,
+        is_physics_informed: bool = True,
+        nr: int = 64,
+        nz: int = 64,
+    ):
         self.dtype = dtype
         self.device = get_device()
         self.scaler = StandardScaler()
         self.is_physics_informed = is_physics_informed
+        self.nr = nr
+        self.nz = nz
 
         data = read_h5_numpy(path)
         self.inputs = self.scaler.fit_transform(
@@ -180,7 +191,7 @@ class PlaNetDataset:
 
         return _to_tensor(
             device=self.device,
-            dtype=self.dtype, 
+            dtype=self.dtype,
             inputs=(inputs, flux, rhs, RR, ZZ, L_ker, Df_ker),
         )
 

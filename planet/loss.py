@@ -8,7 +8,6 @@ import torch.nn.functional as F
 Gauss_kernel = np.array(([1, 2, 1], [2, 4, 2], [1, 2, 1])) / (16)
 
 
-
 def _compute_grad_shafranov_operator(
     pred: Tensor,
     Laplace_kernel: Tensor,
@@ -86,14 +85,17 @@ class GSOperatorLoss(nn.Module):
         return self.mse(rhs_computed, rhs)
 
 
-
-MAP_PDELOSS : Dict[str, nn.Module] = {
-    "grad_shafranov_operator": GSOperatorLoss
-}
+MAP_PDELOSS: Dict[str, nn.Module] = {"grad_shafranov_operator": GSOperatorLoss}
 
 
 class PlaNetLoss(nn.Module):
-    def __init__(self, is_physics_informed:bool=True, scale_mse: float = 1.0, scale_pde: float = 1.0, pde_loss_class: str="grad_shafranov_operator"):
+    def __init__(
+        self,
+        is_physics_informed: bool = True,
+        scale_mse: float = 1.0,
+        scale_pde: float = 1.0,
+        pde_loss_class: str = "grad_shafranov_operator",
+    ):
         super().__init__()
         self.is_physics_informed = is_physics_informed
         self.loss_mse = nn.MSELoss()
@@ -112,7 +114,7 @@ class PlaNetLoss(nn.Module):
         ZZ: Tensor,
     ) -> Tensor:
         mse_loss = self.scale_mse * self.loss_mse(input=pred, target=target)
-        if  not self.is_physics_informed:
+        if not self.is_physics_informed:
             return mse_loss
         else:
             pde_loss = self.scale_pde * self.loss_pde(

@@ -1,13 +1,14 @@
+import yaml
+
 from planet.config import PlaNetConfig
 
 
 def test_config():
-    config = PlaNetConfig()
 
-    config_2 = PlaNetConfig.from_dict({
-        'batch_size': 128,
-        "log_to_wandb": True
-    })
+    config = PlaNetConfig(
+        batch_size=128,
+        branch_in_dim=10000,
+    )
 
-
-test_config()
+    cfg = yaml.safe_load(open("planet/tests/data/config.yml"))
+    config = PlaNetConfig.from_dict(cfg)

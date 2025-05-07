@@ -14,21 +14,20 @@ from .loss import PlaNetLoss
 from .data import PlaNetDataset, get_device
 
 
-
 def collate_fun(batch: Tuple[Tuple[Tensor]]) -> Tuple[Tensor]:
     return (
-        torch.stack([s[0] for s in batch], dim=0), # measures
-        torch.stack([s[1] for s in batch], dim=0), # flux
-        torch.stack([s[2] for s in batch], dim=0), # rhs
-        torch.stack([s[3] for s in batch], dim=0), # RR
-        torch.stack([s[4] for s in batch], dim=0), # ZZ
-        torch.stack([s[5] for s in batch], dim=0), # L_ker
-        torch.stack([s[6] for s in batch], dim=0), # Dr_ker
+        torch.stack([s[0] for s in batch], dim=0),  # measures
+        torch.stack([s[1] for s in batch], dim=0),  # flux
+        torch.stack([s[2] for s in batch], dim=0),  # rhs
+        torch.stack([s[3] for s in batch], dim=0),  # RR
+        torch.stack([s[4] for s in batch], dim=0),  # ZZ
+        torch.stack([s[5] for s in batch], dim=0),  # L_ker
+        torch.stack([s[6] for s in batch], dim=0),  # Dr_ker
     )
 
 
 class DataModule(L.LightningDataModule):
-    def __init__(self, dataset_path: str, config:PlaNetConfig = PlaNetConfig()):
+    def __init__(self, dataset_path: str, config: PlaNetConfig = PlaNetConfig()):
         super().__init__()
         self.train_dataset = PlaNetDataset(path=dataset_path)
         self.batch_size = config.batch_size
@@ -46,7 +45,7 @@ class DataModule(L.LightningDataModule):
 
 
 class LightningPlaNet(L.LightningModule):
-    def __init__(self, is_physics_informed:bool=True):
+    def __init__(self, is_physics_informed: bool = True):
         super().__init__()
         # device = get_device()
         self.model = PlaNetCore()

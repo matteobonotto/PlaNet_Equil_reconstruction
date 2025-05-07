@@ -35,9 +35,7 @@ if __name__ == "__main__":
     write_h5(data, filename="iter_like_data")
 
     data_sample = {
-        k: v[:64, ...]
-        for k, v in data.items()
-        if "RR" not in k and "ZZ" not in k
+        k: v[:64, ...] for k, v in data.items() if "RR" not in k and "ZZ" not in k
     }
     data_sample["RR_grid"] = data["RR_grid"]
     data_sample["ZZ_grid"] = data["ZZ_grid"]

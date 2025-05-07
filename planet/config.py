@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 class PlaNetConfig:
     is_physics_informed: bool = True
     dataset_path: Optional[str] = None
-    batch_size:int = 64
+    batch_size: int = 64
     epochs: int = 10
     hidden_dim: int = 128
     nr: int = 64
@@ -20,4 +20,8 @@ class PlaNetConfig:
 
     @classmethod
     def from_dict(cls, config_dict: Dict[str, Any]) -> PlaNetConfig:
-        pass
+        cls_instance = cls()
+        for k, v in config_dict.items():
+            if k in cls_instance.__dict__.keys():
+                setattr(cls_instance, k, v)
+        return cls_instance

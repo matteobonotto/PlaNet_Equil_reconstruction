@@ -6,13 +6,9 @@ from planet.train import LightningPlaNet, DataModule
 
 def parse_arguments() -> Namespace:
     parser = ArgumentParser()
-    parser.add_argument('config', help="path to config file")
+    parser.add_argument("config", help="path to config file")
     args, _ = parser.parse_known_args()
     return args
-
-
-
-
 
 
 def load_config(path: str) -> PlaNetConfig:
@@ -20,12 +16,9 @@ def load_config(path: str) -> PlaNetConfig:
     return PlaNetConfig.from_dict(config_dict=config_dict)
 
 
-
-
 if __name__ == "__main__":
 
     args = parse_arguments()
-
 
     ### instantiate model and datamodule
     model = LightningPlaNet(is_physics_informed=is_physics_informed)
