@@ -31,21 +31,23 @@ if __name__ == "__main__":
         "ZZ_grid": ZZ_grid,
         "p_profile": p_profile,
     }
-    data = {k: v.astype("float32") for k, v in data.items()}
+    # data = {k: v.astype("float32") for k, v in data.items()}
+    write_h5(data, filename="iter_like_data")
+
     data_sample = {
-        k: v.astype("float32")[:8, ...]
+        k: v[:64, ...]
         for k, v in data.items()
         if "RR" not in k and "ZZ" not in k
     }
     data_sample["RR_grid"] = data["RR_grid"]
     data_sample["ZZ_grid"] = data["ZZ_grid"]
+    write_h5(data_sample, filename="planet/tests/data/iter_like_data_sample")
 
     import pyarrow as pa
 
     pa.Table.from_pydict(data)
 
     write_h5(data, filename="iter_like_data")
-    write_h5(data_sample, filename="iter_like_data_sample")
     import time
 
     t0 = time.time()

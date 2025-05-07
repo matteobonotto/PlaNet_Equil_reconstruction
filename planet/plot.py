@@ -2,11 +2,12 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 
 
-def fun_contourf_sol(z, RR, ZZ):
+def fun_contourf_sol(z, RR, ZZ, title:str=''):
     plt.figure()
     plt.contourf(RR, ZZ, z, 20)
     plt.axis("equal")
     plt.colorbar()
+    plt.title(title)
     plt.show()
     return
 

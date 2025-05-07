@@ -92,13 +92,13 @@ def compute_Grda_Shafranov_kernels(RR: ndarray, ZZ: ndarray) -> Tuple[ndarray, n
     return Laplace_kernel, Df_dr_kernel
 
 
-def _to_tensor(device: torch.device, inputs: Tuple[Any]) -> Tuple[Tensor]:
+def _to_tensor(device: torch.device, inputs: Tuple[Any], dtype: torch.dtype) -> Tuple[Tensor]:
     inputs_t: List[Tensor] = []
     for x in inputs:
         inputs_t.append(
             torch.tensor(
                 x,
-                dtype=torch.float32,
+                dtype=dtype,
                 # device=device,
             )
         )
@@ -115,9 +115,11 @@ def get_device() -> torch.device:
 
 
 class PlaNetDataset:
-    def __init__(self, path: str):
+    def __init__(self, path: str, dtype: torch.dtype = torch.float32, is_physics_informed: bool = True):
+        self.dtype = dtype
         self.device = get_device()
         self.scaler = StandardScaler()
+        self.is_physics_informed = is_physics_informed
 
         data = read_h5_numpy(path)
         self.inputs = self.scaler.fit_transform(
@@ -159,20 +161,26 @@ class PlaNetDataset:
             # interpolate on a subgrid
             rr, zz = self.sample_random_subgrids()
             flux = interp_fun(f=flux, RR=self.RR, ZZ=self.ZZ, rr=rr, zz=zz)
-            rhs = interp_fun(
-                f=rhs,
-                RR=self.RR,
-                ZZ=self.ZZ,
-                rr=rr[1:-1, 1:-1],
-                zz=zz[1:-1, 1:-1],
-            )
+            if self.is_physics_informed:
+                rhs = interp_fun(
+                    f=rhs,
+                    RR=self.RR,
+                    ZZ=self.ZZ,
+                    rr=rr[1:-1, 1:-1],
+                    zz=zz[1:-1, 1:-1],
+                )
+            else:
+                rhs = np.zeros_like(rhs[1:-1, 1:-1])
             RR = rr
             ZZ = zz
+        else:
+            rhs = rhs[1:-1, 1:-1]
 
         L_ker, Df_ker = compute_Grda_Shafranov_kernels(RR=RR, ZZ=ZZ)
 
         return _to_tensor(
             device=self.device,
+            dtype=self.dtype, 
             inputs=(inputs, flux, rhs, RR, ZZ, L_ker, Df_ker),
         )
 

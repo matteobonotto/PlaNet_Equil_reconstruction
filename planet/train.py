@@ -1,29 +1,42 @@
-import os
-import sys
+# import os
+# import sys
+# sys.path.append(os.getcwd())
 
-sys.path.append(os.getcwd())
+from typing import TypeAlias, Tuple
 import torch
+from torch import Tensor
 import lightning as L
 from torch.utils.data import DataLoader
 
+from .config import PlaNetConfig
 from .model import PlaNetCore
 from .loss import PlaNetLoss
 from .data import PlaNetDataset, get_device
 
 
-def collate_fun(batch):
-    measures, flux, rhs, RR, ZZ, L_ker, Df_ker
+
+def collate_fun(batch: Tuple[Tuple[Tensor]]) -> Tuple[Tensor]:
+    return (
+        torch.stack([s[0] for s in batch], dim=0), # measures
+        torch.stack([s[1] for s in batch], dim=0), # flux
+        torch.stack([s[2] for s in batch], dim=0), # rhs
+        torch.stack([s[3] for s in batch], dim=0), # RR
+        torch.stack([s[4] for s in batch], dim=0), # ZZ
+        torch.stack([s[5] for s in batch], dim=0), # L_ker
+        torch.stack([s[6] for s in batch], dim=0), # Dr_ker
+    )
 
 
 class DataModule(L.LightningDataModule):
-    def __init__(self, dataset_path: str):
+    def __init__(self, dataset_path: str, config:PlaNetConfig = PlaNetConfig()):
         super().__init__()
         self.train_dataset = PlaNetDataset(path=dataset_path)
+        self.batch_size = config.batch_size
 
     def train_dataloader(self):
         return DataLoader(
             dataset=self.train_dataset,
-            batch_size=64,
+            batch_size=self.batch_size,
             shuffle=True,
             collate_fn=collate_fun,
         )
@@ -33,11 +46,11 @@ class DataModule(L.LightningDataModule):
 
 
 class LightningPlaNet(L.LightningModule):
-    def __init__(self):
+    def __init__(self, is_physics_informed:bool=True):
         super().__init__()
         # device = get_device()
         self.model = PlaNetCore()
-        self.loss_module = PlaNetLoss()
+        self.loss_module = PlaNetLoss(is_physics_informed=is_physics_informed)
 
     def _compute_loss_batch(self, batch, batch_idx):
         measures, flux, rhs, RR, ZZ, L_ker, Df_ker = batch
