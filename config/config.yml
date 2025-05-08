@@ -1,8 +1,8 @@
 is_physics_informed: True
 save_path:  'trained_models/planet_physics_informed/model.pt'
 dataset_path: data/iter_like_data.h5 #'planet/tests/data/iter_like_data_sample.h5' #'data/iter_like_data.h5' #'planet/tests/data/iter_like_data_sample.h5' #iter_like_data.h5'
-batch_size: 64
-epochs: 100
+batch_size: 256
+epochs: 1000
 hidden_dim: 128
 nr: 64
 nz: 64
@@ -10,5 +10,5 @@ branch_in_dim: 302
 log_to_wandb: true
 wandb_project: planet
 save_checkpoints: true
-resume_from_checkpoint: false
-num_workers: 3
+resume_from_checkpoint: true
+num_workers: 6

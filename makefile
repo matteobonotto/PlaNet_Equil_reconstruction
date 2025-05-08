@@ -3,6 +3,7 @@
 install:
 	pip3 install -U pip
 	pip3 install poetry==1.8.3
+	pip3 install virtualenv==20.30.0
 	poetry config virtualenvs.create false
 	poetry install --no-interaction --no-ansi --with dev --with optional --verbose
 
