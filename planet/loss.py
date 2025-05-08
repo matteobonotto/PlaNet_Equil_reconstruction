@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 import torch
 from torch import Tensor, nn
 import numpy as np
@@ -89,6 +89,7 @@ MAP_PDELOSS: Dict[str, nn.Module] = {"grad_shafranov_operator": GSOperatorLoss}
 
 
 class PlaNetLoss(nn.Module):
+    log_dict: Dict[str, float] = {}
     def __init__(
         self,
         is_physics_informed: bool = True,
@@ -99,7 +100,7 @@ class PlaNetLoss(nn.Module):
         super().__init__()
         self.is_physics_informed = is_physics_informed
         self.loss_mse = nn.MSELoss()
-        self.loss_pde = MAP_PDELOSS[pde_loss_class]
+        self.loss_pde = MAP_PDELOSS[pde_loss_class]()
         self.scale_mse = scale_mse
         self.scale_pde = scale_pde
 
@@ -114,6 +115,7 @@ class PlaNetLoss(nn.Module):
         ZZ: Tensor,
     ) -> Tensor:
         mse_loss = self.scale_mse * self.loss_mse(input=pred, target=target)
+        self.log_dict["mse_loss"] = mse_loss.item()
         if not self.is_physics_informed:
             return mse_loss
         else:
@@ -125,4 +127,5 @@ class PlaNetLoss(nn.Module):
                 RR=RR,
                 ZZ=ZZ,
             )
+            self.log_dict["pde_loss"] = pde_loss.item()
             return mse_loss + pde_loss

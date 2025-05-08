@@ -144,6 +144,12 @@ class PlaNetDataset:
         self.RR = data["RR_grid"]
         self.ZZ = data["ZZ_grid"]
 
+        if self.nr != self.RR.shape[0] or self.nz != self.RR.shape[1]:
+            rr = np.linspace(self.RR[0,0], self.RR[0,-1], self.nr)
+            zz = np.linspace(self.ZZ[0,0], self.RR[-1,0], self.nr)
+            self.RR, self.ZZ = np.meshgrid(rr, zz)
+            self.base_RR, self.base_ZZ = data["RR_grid"], data["ZZ_grid"]
+
         self.sample_random_subgrids = partial(
             sample_random_subgrids,
             RR_min=self.RR.min(),
@@ -167,6 +173,10 @@ class PlaNetDataset:
         rhs = self.rhs[idx, ...]
         RR = self.RR
         ZZ = self.ZZ
+
+        if flux.shape[1] != RR.shape[0] or flux.shape[1] != RR.shape[1]:
+            flux = interp_fun(f=flux, RR=self.base_RR, ZZ=self.base_ZZ, rr=self.RR, zz=self.ZZ)
+            rhs = interp_fun(f=rhs, RR=self.base_RR, ZZ=self.base_ZZ, rr=self.RR, zz=self.ZZ)
 
         if random.random() > 0.5:
             # interpolate on a subgrid

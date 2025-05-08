@@ -3,10 +3,12 @@
 # sys.path.append(os.getcwd())
 
 from typing import TypeAlias, Tuple
+import random
 import torch
 from torch import Tensor
 import lightning as L
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
+from multiprocessing import cpu_count
 
 from .config import PlaNetConfig
 from .model import PlaNetCore
@@ -25,12 +27,25 @@ def collate_fun(batch: Tuple[Tuple[Tensor]]) -> Tuple[Tensor]:
         torch.stack([s[6] for s in batch], dim=0),  # Dr_ker
     )
 
-
 class DataModule(L.LightningDataModule):
-    def __init__(self, dataset_path: str, config: PlaNetConfig = PlaNetConfig()):
+    def __init__(self,config: PlaNetConfig):
         super().__init__()
-        self.train_dataset = PlaNetDataset(path=dataset_path)
+        self.dataset = PlaNetDataset(
+            path=config.dataset_path,
+            is_physics_informed=config.is_physics_informed,
+            nr=config.nr,
+            nz=config.nz,
+        )
         self.batch_size = config.batch_size
+        self.num_workers = cpu_count()-2 if config.num_workers == -1 else config.num_workers
+        self.split_dataset()
+        
+    def split_dataset(self, ratio:int = .1):
+        idx = list(range(len(self.dataset)))
+        idx_valid = random.sample(idx, k=int(ratio*len(idx)))
+        idx_train = list(set(idx).difference(idx_valid))
+        self.train_dataset = Subset(self.dataset, idx_train)
+        self.val_dataset = Subset(self.dataset, idx_valid)
 
     def train_dataloader(self):
         return DataLoader(
@@ -38,6 +53,18 @@ class DataModule(L.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=True,
             collate_fn=collate_fun,
+            num_workers=self.num_workers,
+            persistent_workers=True if self.num_workers > 0 else False,
+        )
+
+    def val_dataloader(self):
+        return DataLoader(
+            dataset=self.val_dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            collate_fn=collate_fun,
+            num_workers=self.num_workers,
+            persistent_workers=True if self.num_workers > 0 else False,
         )
 
     def setup(self, stage=None):
@@ -45,11 +72,16 @@ class DataModule(L.LightningDataModule):
 
 
 class LightningPlaNet(L.LightningModule):
-    def __init__(self, is_physics_informed: bool = True):
+    def __init__(self, config: PlaNetConfig):
         super().__init__()
         # device = get_device()
-        self.model = PlaNetCore()
-        self.loss_module = PlaNetLoss(is_physics_informed=is_physics_informed)
+        self.model = PlaNetCore(
+            hidden_dim=config.hidden_dim,
+            nr=config.nr,
+            nz=config.nz,
+            branch_in_dim=config.branch_in_dim
+        )
+        self.loss_module = PlaNetLoss(is_physics_informed=config.is_physics_informed)
 
     def _compute_loss_batch(self, batch, batch_idx):
         measures, flux, rhs, RR, ZZ, L_ker, Df_ker = batch
@@ -71,21 +103,29 @@ class LightningPlaNet(L.LightningModule):
     def training_step(self, batch, batch_idx):
         loss = self._compute_loss_batch(batch, batch_idx)
         self.log("train_loss", loss, prog_bar=True)
+        # self.logger.log_metrics({'train_'+k:v for k,v in self.loss_module.log_dict.items()})
+        for k, v in self.loss_module.log_dict.items():
+            self.log(f"train_{k}", v, prog_bar=False)
+        return loss
+    
+    def validation_step(self, batch, batch_idx):
+        loss = self._compute_loss_batch(batch, batch_idx)
+        self.log("val_loss", loss, prog_bar=True)
         return loss
 
     def configure_optimizers(self):
         return torch.optim.AdamW(self.parameters(), lr=0.001)
 
-    def on_fit_start(self):
-        # Check if everything is correctly on device
-        print("\nChecking model parameters devices:")
-        for name, param in self.named_parameters():
-            print(name, param.device)
+    # def on_fit_start(self):
+    #     # Check if everything is correctly on device
+    #     print("\nChecking model parameters devices:")
+    #     for name, param in self.named_parameters():
+    #         print(name, param.device)
 
-        print("\nChecking model children modules devices:")
-        for name, module in self.named_modules():
-            if isinstance(module, torch.nn.Module):
-                for pname, p in module.named_parameters(recurse=False):
-                    print(f"{name}.{pname} -> {p.device}")
+    #     print("\nChecking model children modules devices:")
+    #     for name, module in self.named_modules():
+    #         if isinstance(module, torch.nn.Module):
+    #             for pname, p in module.named_parameters(recurse=False):
+    #                 print(f"{name}.{pname} -> {p.device}")
 
-        pass
+    #     pass

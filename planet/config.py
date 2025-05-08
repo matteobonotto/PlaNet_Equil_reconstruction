@@ -14,6 +14,11 @@ class PlaNetConfig:
     nz: int = 64
     branch_in_dim: int = 302
     log_to_wandb: bool = False
+    wandb_project: Optional[str] = None
+    save_checkpoints: bool = False
+    save_path:str = 'tmp/model.pt'
+    resume_from_checkpoint: bool = False
+    num_workers:int = 4
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

@@ -13,13 +13,13 @@
             "justMyCode": false
         }        ,
         {
-            "name": "main",
+            "name": "main train",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/scripts/main.py",
+            "program": "${workspaceFolder}/planet/scripts/main_train.py",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args" : ["-c", "./config/config_train_TF.yml"]
+            "args" : ["-c", "./config/config.yml"]
         }
     ]
 }

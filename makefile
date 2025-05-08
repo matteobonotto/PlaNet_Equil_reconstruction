@@ -24,5 +24,8 @@ style:
 type: 
 	poetry run mypy planet --config-file pyproject.toml
 
+train:
+	python planet/scripts/main_train.py -config "config/config.yml"
+
 
 

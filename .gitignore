@@ -76,7 +76,10 @@ venv/*
 
 !planet/test/data/*
 
-
+wandb/*
+nohup.out
+trained_models/*
+trained_models_tf/*
 
 
 
