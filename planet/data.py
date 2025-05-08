@@ -124,6 +124,7 @@ class PlaNetDataset:
         is_physics_informed: bool = True,
         nr: int = 64,
         nz: int = 64,
+        do_super_resolution: bool = False,
     ):
         self.dtype = dtype
         self.device = get_device()
@@ -131,6 +132,7 @@ class PlaNetDataset:
         self.is_physics_informed = is_physics_informed
         self.nr = nr
         self.nz = nz
+        self.do_super_resolution = do_super_resolution
 
         data = read_h5_numpy(path)
         self.inputs = self.scaler.fit_transform(
@@ -145,8 +147,8 @@ class PlaNetDataset:
         self.ZZ = data["ZZ_grid"]
 
         if self.nr != self.RR.shape[0] or self.nz != self.RR.shape[1]:
-            rr = np.linspace(self.RR[0,0], self.RR[0,-1], self.nr)
-            zz = np.linspace(self.ZZ[0,0], self.RR[-1,0], self.nr)
+            rr = np.linspace(self.RR[0, 0], self.RR[0, -1], self.nr)
+            zz = np.linspace(self.ZZ[0, 0], self.RR[-1, 0], self.nr)
             self.RR, self.ZZ = np.meshgrid(rr, zz)
             self.base_RR, self.base_ZZ = data["RR_grid"], data["ZZ_grid"]
 
@@ -175,10 +177,14 @@ class PlaNetDataset:
         ZZ = self.ZZ
 
         if flux.shape[1] != RR.shape[0] or flux.shape[1] != RR.shape[1]:
-            flux = interp_fun(f=flux, RR=self.base_RR, ZZ=self.base_ZZ, rr=self.RR, zz=self.ZZ)
-            rhs = interp_fun(f=rhs, RR=self.base_RR, ZZ=self.base_ZZ, rr=self.RR, zz=self.ZZ)
+            flux = interp_fun(
+                f=flux, RR=self.base_RR, ZZ=self.base_ZZ, rr=self.RR, zz=self.ZZ
+            )
+            rhs = interp_fun(
+                f=rhs, RR=self.base_RR, ZZ=self.base_ZZ, rr=self.RR, zz=self.ZZ
+            )
 
-        if random.random() > 0.5:
+        if random.random() > 0.5 and self.do_super_resolution:
             # interpolate on a subgrid
             rr, zz = self.sample_random_subgrids()
             flux = interp_fun(f=flux, RR=self.RR, ZZ=self.ZZ, rr=rr, zz=zz)

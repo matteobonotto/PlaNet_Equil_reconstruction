@@ -27,22 +27,26 @@ def collate_fun(batch: Tuple[Tuple[Tensor]]) -> Tuple[Tensor]:
         torch.stack([s[6] for s in batch], dim=0),  # Dr_ker
     )
 
+
 class DataModule(L.LightningDataModule):
-    def __init__(self,config: PlaNetConfig):
+    def __init__(self, config: PlaNetConfig):
         super().__init__()
         self.dataset = PlaNetDataset(
             path=config.dataset_path,
             is_physics_informed=config.is_physics_informed,
             nr=config.nr,
             nz=config.nz,
+            do_super_resolution=config.do_super_resolution,
         )
         self.batch_size = config.batch_size
-        self.num_workers = cpu_count()-2 if config.num_workers == -1 else config.num_workers
+        self.num_workers = (
+            cpu_count() - 2 if config.num_workers == -1 else config.num_workers
+        )
         self.split_dataset()
-        
-    def split_dataset(self, ratio:int = .1):
+
+    def split_dataset(self, ratio: int = 0.1):
         idx = list(range(len(self.dataset)))
-        idx_valid = random.sample(idx, k=int(ratio*len(idx)))
+        idx_valid = random.sample(idx, k=int(ratio * len(idx)))
         idx_train = list(set(idx).difference(idx_valid))
         self.train_dataset = Subset(self.dataset, idx_train)
         self.val_dataset = Subset(self.dataset, idx_valid)
@@ -79,7 +83,7 @@ class LightningPlaNet(L.LightningModule):
             hidden_dim=config.hidden_dim,
             nr=config.nr,
             nz=config.nz,
-            branch_in_dim=config.branch_in_dim
+            branch_in_dim=config.branch_in_dim,
         )
         self.loss_module = PlaNetLoss(is_physics_informed=config.is_physics_informed)
 
@@ -107,7 +111,7 @@ class LightningPlaNet(L.LightningModule):
         for k, v in self.loss_module.log_dict.items():
             self.log(f"train_{k}", v, prog_bar=False)
         return loss
-    
+
     def validation_step(self, batch, batch_idx):
         loss = self._compute_loss_batch(batch, batch_idx)
         self.log("val_loss", loss, prog_bar=True)

@@ -90,6 +90,7 @@ MAP_PDELOSS: Dict[str, nn.Module] = {"grad_shafranov_operator": GSOperatorLoss}
 
 class PlaNetLoss(nn.Module):
     log_dict: Dict[str, float] = {}
+
     def __init__(
         self,
         is_physics_informed: bool = True,

@@ -16,9 +16,10 @@ class PlaNetConfig:
     log_to_wandb: bool = False
     wandb_project: Optional[str] = None
     save_checkpoints: bool = False
-    save_path:str = 'tmp/model.pt'
+    save_path: str = "tmp/model.pt"
     resume_from_checkpoint: bool = False
-    num_workers:int = 4
+    num_workers: int = 4
+    do_super_resolution: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

@@ -1,6 +1,7 @@
-is_physics_informed: True
+is_physics_informed: true
 save_path:  'trained_models/planet_physics_informed/model.pt'
 dataset_path: data/iter_like_data.h5 #'planet/tests/data/iter_like_data_sample.h5' #'data/iter_like_data.h5' #'planet/tests/data/iter_like_data_sample.h5' #iter_like_data.h5'
+do_super_resolution: false
 batch_size: 256
 epochs: 1000
 hidden_dim: 128

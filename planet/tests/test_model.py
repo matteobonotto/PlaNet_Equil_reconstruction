@@ -28,8 +28,9 @@ def test_TrunkNet():
     )
     trunk_net = TrunkNet()
     out_trunk = trunk_net(RR, ZZ)
-    assert out_trunk.shape == (8, 64)
+    assert out_trunk.shape == (8, 128)
 
+test_TrunkNet()
 
 def test_PlaNetCore():
     measures = torch.rand([8, 302], dtype=DTYPE)
