@@ -81,7 +81,7 @@ nohup.out
 trained_models/*
 trained_models_tf/*
 
-
+poetry.lock
 
 
 
