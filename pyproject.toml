@@ -12,8 +12,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-
-[tool.poetry.dev-dependencies]
 black = "^25.1.0"
 datasets = "^3.3.2"
 ipykernel = "^6.29.5"
