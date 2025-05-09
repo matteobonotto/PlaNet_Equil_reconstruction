@@ -11,7 +11,6 @@ from .config import PlaNetConfig
 from .train import DataModule
 
 
-
 def parse_arguments() -> Namespace:
     parser = ArgumentParser()
     parser.add_argument("config", help="path to config file")

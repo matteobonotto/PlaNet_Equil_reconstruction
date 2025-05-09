@@ -95,7 +95,7 @@ class PlaNetLoss(nn.Module):
         self,
         is_physics_informed: bool = True,
         scale_mse: float = 1.0,
-        scale_pde: float = 1.0,
+        scale_pde: float = 0.1,  # for better stability
         pde_loss_class: str = "grad_shafranov_operator",
     ):
         super().__init__()

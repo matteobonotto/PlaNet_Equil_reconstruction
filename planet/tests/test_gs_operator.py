@@ -12,6 +12,7 @@ from planet.train import DataModule
 from planet.config import PlaNetConfig
 from planet.utils import load_config
 
+
 def test_gs_operator():
     ###
     datamodule = DataModule(load_config("planet/tests/data/config.yml"))
